@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-ignore, `~bank` is an internal package
 import { getBalance, sendCoins } from '~bank';
 
 import { store } from './sdk';
