@@ -10,7 +10,7 @@ const contractStore = store({
   reserves: [0, 0],
 });
 
-export default class Contract {
+export class Contract {
   msg: Msg;
   address: string;
   totalSupply: any;

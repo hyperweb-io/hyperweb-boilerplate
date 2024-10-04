@@ -156,6 +156,7 @@ var Contract = class {
   }
 };
 export {
+  Contract,
   store,
   storeEntry
 };

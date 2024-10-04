@@ -5,13 +5,13 @@ function reset(state) {
   return newValue;
 }
 function inc(state, { x }) {
-  const oldValue = state.value ?? 0;
+  const oldValue = state.value;
   const newValue = oldValue + x;
   state.value = newValue;
   return newValue;
 }
 function dec(state, { x }) {
-  const oldValue = state.value ?? 0;
+  const oldValue = state.value;
   const newValue = oldValue - x;
   state.value = newValue;
   return newValue;
