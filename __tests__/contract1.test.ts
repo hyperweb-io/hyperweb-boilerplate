@@ -14,6 +14,8 @@ describe('JSD tests', () => {
   let chainInfo, getCoin, getRpcEndpoint, creditFromFaucet;
   let contractCode, contractIndex;
 
+  let fee;
+
   beforeAll(async () => {
     ({
       chainInfo,
@@ -40,6 +42,9 @@ describe('JSD tests', () => {
       signer: wallet
     });
 
+    // set default fee
+    fee = {amount: [{denom, amount: '100000'}], gas: '550000'};
+
     await creditFromFaucet(address);
     await sleep(2000); // sleep for 1 sec to get tokens transferred from faucet successfully
   });
@@ -54,16 +59,6 @@ describe('JSD tests', () => {
     // Read contract code from external file
     const contractPath = path.join(__dirname, '../dist/contracts/bundle1.js');
     contractCode = fs.readFileSync(contractPath, 'utf8');
-
-    const fee = {
-      amount: [
-        {
-          denom,
-          amount: '100000'
-        }
-      ],
-      gas: '550000'
-    };
 
     const msg = jsd.jsd.MessageComposer.fromPartial.instantiate({
       creator: address,
@@ -93,16 +88,6 @@ describe('JSD tests', () => {
   });
 
   it('perform inc eval', async () => {
-    const fee = {
-      amount: [
-        {
-          denom,
-          amount: '100000'
-        }
-      ],
-      gas: '550000'
-    };
-
     const msg = jsd.jsd.MessageComposer.fromPartial.eval({
       creator: address,
       index: contractIndex,
@@ -118,16 +103,6 @@ describe('JSD tests', () => {
   });
 
   it('eval read from eval', async () => {
-    const fee = {
-      amount: [
-        {
-          denom,
-          amount: '100000'
-        }
-      ],
-      gas: '550000'
-    };
-
     const msg = jsd.jsd.MessageComposer.fromPartial.eval({
       creator: address,
       index: contractIndex,
@@ -147,16 +122,6 @@ describe('JSD tests', () => {
   });
 
   it('perform dec eval', async () => {
-    const fee = {
-      amount: [
-        {
-          denom,
-          amount: '100000'
-        }
-      ],
-      gas: '550000'
-    };
-
     const msg = jsd.jsd.MessageComposer.fromPartial.eval({
       creator: address,
       index: contractIndex,
@@ -172,16 +137,6 @@ describe('JSD tests', () => {
   });
 
   it('eval read from eval', async () => {
-    const fee = {
-      amount: [
-        {
-          denom,
-          amount: '100000'
-        }
-      ],
-      gas: '550000'
-    };
-
     const msg = jsd.jsd.MessageComposer.fromPartial.eval({
       creator: address,
       index: contractIndex,

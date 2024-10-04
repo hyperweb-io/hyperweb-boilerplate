@@ -39,7 +39,7 @@ describe('JSD tests', () => {
     wallet2 = await DirectSecp256k1HdWallet.fromMnemonic(generateMnemonic(), {
       prefix: chainInfo.chain.bech32_prefix
     });
-    address2 = (await wallet.getAccounts())[0].address;
+    address2 = (await wallet2.getAccounts())[0].address;
     console.log(`contract creator address: ${address2}`)
 
     // Create custom cosmos interchain client
@@ -59,8 +59,6 @@ describe('JSD tests', () => {
 
     await creditFromFaucet(address2, denom);
     await creditFromFaucet(address2, denom2);
-    await creditFromFaucet(address2, denomATOM);
-    await creditFromFaucet(address2, denomUSDC);
 
     fee = {amount: [{denom, amount: '100000'}], gas: '550000'};
 
@@ -132,10 +130,10 @@ describe('JSD tests', () => {
 
   it('check balance after addLiquidity', async () => {
     const usdcBalance = await signingClient.getBalance(address, "USDC");
-    expect(usdcBalance.amount).toEqual("50");
+    expect(usdcBalance.amount).toEqual("9999999950");
 
     const atomBalance = await signingClient.getBalance(address, "ATOM");
-    expect(atomBalance.amount).toEqual("50");
+    expect(atomBalance.amount).toEqual("9999999950");
   });
 
   it('perform swap eval', async () => {
