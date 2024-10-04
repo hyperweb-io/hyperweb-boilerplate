@@ -156,8 +156,8 @@ var Contract = class {
   }
 };
 export {
-  Contract,
   store,
   storeEntry
 };
+export default Contract;
 //# sourceMappingURL=bundle2.js.map
