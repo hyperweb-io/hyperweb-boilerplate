@@ -92,7 +92,7 @@ describe('JSD tests', () => {
       creator: address,
       index: contractIndex,
       fnName: "inc",
-      arg: `{"x":10}`,
+      arg: `{"x": 10}`,
     });
 
     const result = await signingClient.signAndBroadcast(address, [msg], fee);
@@ -126,7 +126,7 @@ describe('JSD tests', () => {
       creator: address,
       index: contractIndex,
       fnName: "dec",
-      arg: `{"x":5}`,
+      arg: `{"x": 5}`,
     });
 
     const result = await signingClient.signAndBroadcast(address, [msg], fee);
@@ -141,6 +141,7 @@ describe('JSD tests', () => {
       creator: address,
       index: contractIndex,
       fnName: "read",
+      arg: "",
     });
 
     const result = await signingClient.signAndBroadcast(address, [msg], fee);
