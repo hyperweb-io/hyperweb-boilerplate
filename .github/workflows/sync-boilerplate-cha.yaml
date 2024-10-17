@@ -13,7 +13,6 @@ jobs:
   sync-repo:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the hyperweb-boilerplate repo (private access)
       - name: Checkout Boilerplate Repo
         uses: actions/checkout@v2
         with:
@@ -21,20 +20,22 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}  # Use PAT for private repo access
           fetch-depth: 0
 
-      # Step 2: Checkout the cha-sync-branch from hyperweb-boilerplate
+      - name: Set Git User Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Checkout CHA Sync Branch
         run: |
           git checkout cha-sync-branch
           git pull origin cha-sync-branch
 
-      # Step 3: Cherry-pick the specific commit into the main branch
       - name: Cherry-pick the commit
         run: |
           git checkout main
           git pull origin main
           git cherry-pick 1c4b4c1eb436d27154e983d3c761632c4b40e029 || git cherry-pick --abort
 
-      # Step 4: Clone the create-hyperweb-app repo (private access)
       - name: Clone Create-Hyperweb-App Repo
         run: |
           git clone https://github.com/hyperweb-io/create-hyperweb-app.git ../create-hyperweb-app
@@ -42,12 +43,10 @@ jobs:
           git checkout main
           cd -
 
-      # Step 5: Sync changes from hyperweb-boilerplate to create-hyperweb-app
       - name: Copy and Apply Changes to Create-Hyperweb-App
         run: |
           rsync -av --exclude='.git' --exclude-from='.github/workflows/sync-boilerplate-cha.yaml' ./ ../create-hyperweb-app/templates/hyperweb/ --delete
 
-      # Step 6: Extract the version from the package.json
       - name: Get Version from package.json
         id: get_version
         run: |
@@ -58,7 +57,6 @@ jobs:
           VERSION=$(jq -r .version ../create-hyperweb-app/cha/package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      # Step 7: Update the version in package.json of create-hyperweb-app
       - name: Update Version in package.json
         run: |
           cd ../create-hyperweb-app
@@ -71,7 +69,6 @@ jobs:
             exit 1
           fi
 
-      # Step 8: Copy the changelog from CHA folder
       - name: Get Changelog File
         run: |
           if [ -f ../create-hyperweb-app/cha/CHANGELOG.md ]; then
@@ -80,7 +77,6 @@ jobs:
             echo "CHANGELOG.md not found!"
           fi
 
-      # Step 9: Commit and push changes to a new branch in create-hyperweb-app
       - name: Commit and Push Changes
         run: |
           cd ../create-hyperweb-app
@@ -92,7 +88,6 @@ jobs:
             git push origin $NEW_BRANCH
           fi
 
-      # Step 10: Create a pull request in create-hyperweb-app
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
