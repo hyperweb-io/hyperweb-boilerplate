@@ -22,8 +22,8 @@ jobs:
 
       - name: Set Git User Identity
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "Anmol1696"
+          git config --global user.email "anmol1696@gmail.com"
 
       - name: Checkout CHA Sync Branch
         run: |
@@ -103,10 +103,10 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/hyperweb-io/create-hyperweb-app/pulls \
             -d "$(echo '{
-              "title": "Sync boilerplate changes for branch '"${NEW_BRANCH}"'",
+              "title": "Sync boilerplate changes for branch `"${NEW_BRANCH}"`",
               "head": "'"${NEW_BRANCH}"'",
               "base": "main",
-              "body": "This PR contains the latest boilerplate changes from hyperweb-boilerplate for branch '"${NEW_BRANCH}"'. Also includes updates from the changelog file."
+              "body": "This PR contains the latest boilerplate changes from hyperweb-boilerplate for branch `"${NEW_BRANCH}"`. Also includes updates from the changelog file."
             }')"
           )
           echo "Pull request created: $PR_URL"
