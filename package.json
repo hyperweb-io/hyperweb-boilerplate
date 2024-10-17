@@ -1,16 +1,20 @@
 {
   "name": "hyperweb",
   "version": "0.0.1",
-  "description": "Hyperweb smart contracts",
-  "author": "Hyperweb <developers@hyperweb.io>",
-  "homepage": "https://github.com/hyperweb-io/hyperweb#readme",
+  "author": "__USERFULLNAME__ <__USEREMAIL__>",
+  "description": "__MODULEDESC__",
+  "homepage": "https://github.com/__USERNAME__/__REPONAME__",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hyperweb-io/hyperweb"
+    "url": "https://github.com/__USERNAME__/__REPONAME__"
   },
   "bugs": {
-    "url": "https://github.com/hyperweb-io/hyperweb/issues"
+    "url": "https://github.com/__USERNAME__/__REPONAME__/issues"
+  },
+  "publishConfig": {
+    "access": "__ACCESS__",
+    "directory": "dist"
   },
   "scripts": {
     "clean": "rimraf dist/contracts/**",
