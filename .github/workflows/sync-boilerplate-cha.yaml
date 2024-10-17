@@ -43,48 +43,46 @@ jobs:
           git checkout main
           cd -
 
+      - name: Get Version from Synced package.json
+        id: get_version
+        run: |
+          if [ ! -f ../create-hyperweb-app/templates/hyperweb/package.json ]; then
+            echo "package.json not found!"
+            exit 1
+          fi
+          VERSION=$(jq -r .version ../create-hyperweb-app/templates/hyperweb/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Copy and Apply Changes to Create-Hyperweb-App
         run: |
           rsync -av --exclude='.git' ./ ../create-hyperweb-app/templates/hyperweb/ --delete
 
-      - name: Get Version from package.json
-        id: get_version
-        run: |
-          if [ ! -f ../create-hyperweb-app/cha/package.json ]; then
-            echo "package.json not found!"
-            exit 1
-          fi
-          VERSION=$(jq -r .version ../create-hyperweb-app/cha/package.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Update Version in package.json
         run: |
           cd ../create-hyperweb-app
-          if [ -f cha/package.json ]; then
+          if [ -f templates/hyperweb/package.json ]; then
             # Update the version in package.json (increment or set the value as needed)
             NEW_VERSION="${{ steps.get_version.outputs.version }}"
-            jq ".version = \"$NEW_VERSION\"" cha/package.json > tmp.json && mv tmp.json cha/package.json
+            jq ".version = \"$NEW_VERSION\"" templates/hyperweb/package.json > tmp.json && mv tmp.json templates/hyperweb/package.json
           else
             echo "package.json not found!"
             exit 1
-          fi
-
-      - name: Get Changelog File
-        run: |
-          if [ -f ../create-hyperweb-app/cha/CHANGELOG.md ]; then
-            cp ../create-hyperweb-app/cha/CHANGELOG.md ../create-hyperweb-app/templates/hyperweb/
-          else
-            echo "CHANGELOG.md not found!"
           fi
 
       - name: Commit and Push Changes
         run: |
           cd ../create-hyperweb-app
+          # Get the short commit hash from the hyperweb-boilerplate repository
+          SHORT_HASH=$(git -C ../hyperweb-boilerplate rev-parse --short HEAD)
+          
+          # Add changes
           git add .
+          
+          # Check if there are any changes to commit
           if ! git diff-index --quiet HEAD; then
-            NEW_BRANCH="sync/hyperweb-boilerplate-update-${{ steps.get_version.outputs.version }}-$(date +%Y%m%d%H%M)"
+            NEW_BRANCH="sync/hyperweb-boilerplate-update-${SHORT_HASH}-$(date +%Y%m%d%H%M)"
             git checkout -b $NEW_BRANCH
-            git commit -m "Sync changes from hyperweb-boilerplate for version ${{ steps.get_version.outputs.version }}"
+            git commit -m "Sync changes from hyperweb-boilerplate for commit ${SHORT_HASH}"
             git push origin $NEW_BRANCH
           fi
 
