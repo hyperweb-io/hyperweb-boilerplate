@@ -34,7 +34,7 @@ jobs:
         run: |
           git checkout main
           git pull origin main
-          git cherry-pick 1c4b4c1eb436d27154e983d3c761632c4b40e029 || git cherry-pick --abort
+          git cherry-pick 1c4b4c1eb436d27154e983d3c761632c4b40e029 ad183e0ba325628aad90b486fa415602c1fbf6d4 || git cherry-pick --abort
 
       - name: Clone Create-Hyperweb-App Repo
         run: |
@@ -51,7 +51,9 @@ jobs:
             exit 1
           fi
           VERSION=$(jq -r .version ../create-hyperweb-app/templates/hyperweb/package.json)
+          GIT_HEAD=$(jq -r .gitHead ../create-hyperweb-app/templates/hyperweb/package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "git_head=$GIT_HEAD" >> $GITHUB_OUTPUT
 
       - name: Get GIT_HASH from Hyperweb-Boilerplate
         id: git_hash
@@ -63,13 +65,16 @@ jobs:
         run: |
           rsync -av --exclude='.git' ./ ../create-hyperweb-app/templates/hyperweb/ --delete
 
-      - name: Update Version in package.json
+      - name: Update Version and GitHead in package.json
         run: |
           cd ../create-hyperweb-app
           if [ -f templates/hyperweb/package.json ]; then
             # Update the version in package.json (increment or set the value as needed)
             NEW_VERSION="${{ steps.get_version.outputs.version }}"
-            jq ".version = \"$NEW_VERSION\"" templates/hyperweb/package.json > tmp.json && mv tmp.json templates/hyperweb/package.json
+            GIT_HEAD="${{ steps.get_version.outputs.git_head }}"
+            jq --arg version "$NEW_VERSION" --arg gitHead "$GIT_HEAD" \
+              'if .gitHead == null then .gitHead = $gitHead else .gitHead end | .version = $version' \
+              templates/hyperweb/package.json > tmp.json && mv tmp.json templates/hyperweb/package.json
           else
             echo "package.json not found!"
             exit 1
@@ -80,6 +85,7 @@ jobs:
         run: |
           cd ../create-hyperweb-app
           git add .
+          git restore --staged templates/hyperweb/CHANGELOG.md
           if ! git diff-index --quiet HEAD; then
             SHORT_HASH="${{ steps.git_hash.outputs.git_hash }}"
             NEW_BRANCH="sync/hyperweb-boilerplate-update-${SHORT_HASH}-$(date +%Y%m%d%H%M)"
@@ -96,13 +102,11 @@ jobs:
             -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/hyperweb-io/create-hyperweb-app/pulls \
-            -d @- << EOF
-            {
-              "title": "Sync boilerplate changes for commit ${NEW_BRANCH}",
-              "head": "${NEW_BRANCH}",
+            -d "$(echo '{
+              "title": "Sync boilerplate changes for branch '"${NEW_BRANCH}"'",
+              "head": "'"${NEW_BRANCH}"'",
               "base": "main",
-              "body": "This PR contains the latest boilerplate changes from hyperweb-boilerplate for branch ${NEW_BRANCH}. Also includes updates from the changelog file."
-            }
-            EOF
+              "body": "This PR contains the latest boilerplate changes from hyperweb-boilerplate for branch '"${NEW_BRANCH}"'. Also includes updates from the changelog file."
+            }')"
           )
           echo "Pull request created: $PR_URL"
