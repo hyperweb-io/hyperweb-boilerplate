@@ -38,7 +38,7 @@ jobs:
 
       - name: Clone Create-Hyperweb-App Repo
         run: |
-          git clone https://github.com/hyperweb-io/create-hyperweb-app.git ../create-hyperweb-app
+          git clone https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/hyperweb-io/create-hyperweb-app.git ../create-hyperweb-app
           cd ../create-hyperweb-app
           git checkout main
           cd -
