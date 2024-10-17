@@ -32,7 +32,7 @@ jobs:
         run: |
           git checkout main
           git pull origin main
-          git cherry-pick <commit-hash> || git cherry-pick --abort
+          git cherry-pick 1c4b4c1eb436d27154e983d3c761632c4b40e029 || git cherry-pick --abort
 
       # Step 4: Clone the create-hyperweb-app repo (private access)
       - name: Clone Create-Hyperweb-App Repo
