@@ -1,0 +1,106 @@
+name: Sync Boilerplate to Create-Hyperweb-App
+
+on:
+  push:
+    branches:
+      - cha-sync-branch
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
+
+jobs:
+  sync-repo:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the hyperweb-boilerplate repo (private access)
+      - name: Checkout Boilerplate Repo
+        uses: actions/checkout@v2
+        with:
+          repository: hyperweb-io/hyperweb-boilerplate
+          token: ${{ secrets.PAT_TOKEN }}  # Use PAT for private repo access
+          fetch-depth: 0
+
+      # Step 2: Checkout the cha-sync-branch from hyperweb-boilerplate
+      - name: Checkout CHA Sync Branch
+        run: |
+          git checkout cha-sync-branch
+          git pull origin cha-sync-branch
+
+      # Step 3: Cherry-pick the specific commit into the main branch
+      - name: Cherry-pick the commit
+        run: |
+          git checkout main
+          git pull origin main
+          git cherry-pick <commit-hash> || git cherry-pick --abort
+
+      # Step 4: Clone the create-hyperweb-app repo (private access)
+      - name: Clone Create-Hyperweb-App Repo
+        run: |
+          git clone https://github.com/hyperweb-io/create-hyperweb-app.git ../create-hyperweb-app
+          cd ../create-hyperweb-app
+          git checkout main
+          cd -
+
+      # Step 5: Sync changes from hyperweb-boilerplate to create-hyperweb-app
+      - name: Copy and Apply Changes to Create-Hyperweb-App
+        run: |
+          rsync -av --exclude='.git' --exclude-from='.github/workflows/sync-boilerplate-cha.yaml' ./ ../create-hyperweb-app/templates/hyperweb/ --delete
+
+      # Step 6: Extract the version from the package.json
+      - name: Get Version from package.json
+        id: get_version
+        run: |
+          if [ ! -f ../create-hyperweb-app/cha/package.json ]; then
+            echo "package.json not found!"
+            exit 1
+          fi
+          VERSION=$(jq -r .version ../create-hyperweb-app/cha/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # Step 7: Update the version in package.json of create-hyperweb-app
+      - name: Update Version in package.json
+        run: |
+          cd ../create-hyperweb-app
+          if [ -f cha/package.json ]; then
+            # Update the version in package.json (increment or set the value as needed)
+            NEW_VERSION="${{ steps.get_version.outputs.version }}"
+            jq ".version = \"$NEW_VERSION\"" cha/package.json > tmp.json && mv tmp.json cha/package.json
+          else
+            echo "package.json not found!"
+            exit 1
+          fi
+
+      # Step 8: Copy the changelog from CHA folder
+      - name: Get Changelog File
+        run: |
+          if [ -f ../create-hyperweb-app/cha/CHANGELOG.md ]; then
+            cp ../create-hyperweb-app/cha/CHANGELOG.md ../create-hyperweb-app/templates/hyperweb/
+          else
+            echo "CHANGELOG.md not found!"
+          fi
+
+      # Step 9: Commit and push changes to a new branch in create-hyperweb-app
+      - name: Commit and Push Changes
+        run: |
+          cd ../create-hyperweb-app
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            NEW_BRANCH="sync/hyperweb-boilerplate-update-${{ steps.get_version.outputs.version }}-$(date +%Y%m%d%H%M)"
+            git checkout -b $NEW_BRANCH
+            git commit -m "Sync changes from hyperweb-boilerplate for version ${{ steps.get_version.outputs.version }}"
+            git push origin $NEW_BRANCH
+          fi
+
+      # Step 10: Create a pull request in create-hyperweb-app
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.PAT_TOKEN }}  # Use PAT for private repo access
+          repository: hyperweb-io/create-hyperweb-app
+          base: main
+          head: sync/hyperweb-boilerplate-update-${{ steps.get_version.outputs.version }}-$(date +%Y%m%d%H%M)
+          title: "Sync boilerplate changes for version ${{ steps.get_version.outputs.version }}"
+          body: |
+            This PR contains the latest boilerplate changes from hyperweb-boilerplate for version ${{ steps.get_version.outputs.version }}.
+            Also includes updates from the changelog file.
