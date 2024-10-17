@@ -45,7 +45,7 @@ jobs:
 
       - name: Copy and Apply Changes to Create-Hyperweb-App
         run: |
-          rsync -av --exclude='.git' --exclude-from='.github/workflows/sync-boilerplate-cha.yaml' ./ ../create-hyperweb-app/templates/hyperweb/ --delete
+          rsync -av --exclude='.git' ./ ../create-hyperweb-app/templates/hyperweb/ --delete
 
       - name: Get Version from package.json
         id: get_version
